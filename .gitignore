@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build artifacts (built by npm run build:deb / packaging scripts)
+dist/
+build/
+*.deb
+*.AppImage
+*.tar.gz
+
+# Logs and caches
+*.log
+npm-debug.log*
+.cache/
+tmp/
+
+# Editor/OS noise
+.DS_Store
+Thumbs.db
+*.swp
+
+# Temp files used during development/verification
+screenshots/_sheet.html

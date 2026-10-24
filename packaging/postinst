@@ -1,0 +1,59 @@
+#!/bin/sh
+# maintainer script: postinst for winexplorer
+set -e
+
+APP_DIR=/opt/winexplorer
+MIMEAPPS=/usr/share/applications/mimeapps.list
+
+# 1. Hardened Chromium sandbox: root-owned SUID helper (the way Google Chrome
+#    and VS Code ship it). Works even where unprivileged userns is blocked.
+if [ -f "$APP_DIR/electron/chrome-sandbox" ]; then
+    chown root:root "$APP_DIR/electron/chrome-sandbox" 2>/dev/null || true
+    chmod 4755 "$APP_DIR/electron/chrome-sandbox" 2>/dev/null || true
+fi
+
+# 2. Register the app with the desktop database and MIME cache.
+if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database -q /usr/share/applications 2>/dev/null || true
+fi
+if command -v update-mime-database >/dev/null 2>&1 && [ -d /usr/share/mime ]; then
+    update-mime-database /usr/share/mime >/dev/null 2>&1 || true
+fi
+
+# 3. Apply the "default file manager" answer (asked by DEBIAN/config).
+#    Non-interactive installs (GUI software centers) never answer it here:
+#    the app itself then asks once on first launch instead — same question,
+#    same choice, just inside the GUI like Windows Setup would.
+if [ -e /usr/share/debconf/confmodule ]; then
+    . /usr/share/debconf/confmodule
+    DB_VALUE=false
+    db_get winexplorer/set-default 2>/dev/null && DB_VALUE="$RET" || true
+
+    if [ "$DB_VALUE" = "true" ]; then
+        mkdir -p /usr/share/applications
+        backup=/var/lib/winexplorer/mimeapps.list.backup
+        mkdir -p /var/lib/winexplorer
+        if [ -f "$MIMEAPPS" ] && [ ! -f "$backup" ]; then
+            cp "$MIMEAPPS" "$backup"
+        fi
+        tmp=$(mktemp)
+        if [ -f "$MIMEAPPS" ]; then
+            # Merge: replace or append the inode/directory default.
+            awk '
+                BEGIN { done=0 }
+                /^\[Default Applications\]$/ { print; print "inode/directory=winexplorer.desktop"; done=1; next }
+                /^inode\/directory=/ { if (!done) next; }
+                { print }
+                END { if (!done) { print "[Default Applications]"; print "inode/directory=winexplorer.desktop" } }
+            ' "$MIMEAPPS" > "$tmp"
+        else
+            printf '[Default Applications]\ninode/directory=winexplorer.desktop\n' > "$tmp"
+        fi
+        install -m 644 "$tmp" "$MIMEAPPS"
+        rm -f "$tmp"
+    fi
+fi
+
+#DEBHELPER#
+
+exit 0

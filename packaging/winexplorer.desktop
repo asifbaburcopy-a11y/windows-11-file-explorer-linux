@@ -1,0 +1,23 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Explorer
+GenericName=File Manager
+Comment=Browse the file system with a Windows 11 style interface
+Exec=/usr/bin/winexplorer %U
+Icon=winexplorer
+Terminal=false
+Categories=System;FileTools;FileManager;
+MimeType=inode/directory;
+Keywords=folder;manager;explorer;files;directory;
+StartupNotify=true
+StartupWMClass=winexplorer
+Actions=new-window;new-tab;
+
+[Desktop Action new-window]
+Name=Open a new Explorer window
+Exec=/usr/bin/winexplorer
+
+[Desktop Action new-tab]
+Name=Open Explorer at Home
+Exec=/usr/bin/winexplorer "~"

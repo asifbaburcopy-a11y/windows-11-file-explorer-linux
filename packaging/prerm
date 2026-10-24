@@ -1,0 +1,14 @@
+#!/bin/sh
+# maintainer script: prerm for winexplorer
+set -e
+
+if [ "$1" = "remove" ]; then
+    # Nothing system-critical to undo here: mimeapps.list edits are cleaned
+    # in postrm on purge; user settings stay untouched (like Windows
+    # uninstall keeping user preferences).
+    :
+fi
+
+#DEBHELPER#
+
+exit 0

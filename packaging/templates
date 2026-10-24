@@ -1,0 +1,9 @@
+Template: winexplorer/set-default
+Type: boolean
+Default: false
+Description: Make Explorer the default file manager?
+ When folders are opened from the desktop, the Start menu or other
+ applications, they will open in Explorer instead of the current file
+ manager (like choosing a default app in Windows). You can change this
+ later from Explorer's Options page, or with: xdg-mime default
+ winexplorer.desktop inode/directory

@@ -1,0 +1,19 @@
+{
+  "name": "winexplorer",
+  "productName": "Explorer",
+  "version": "1.0.0",
+  "description": "A faithful Windows 11 File Explorer clone for Debian-based Linux",
+  "main": "app/main.js",
+  "license": "MIT",
+  "author": "WinExplorer Project",
+  "scripts": {
+    "start": "electron .",
+    "test": "node tests/run-tests.js",
+    "gen:icons": "node tools/make-icons.js",
+    "build:deb": "bash packaging/build-deb.sh",
+    "package:setup": "bash packaging/make-setup-bundle.sh"
+  },
+  "devDependencies": {
+    "electron": "^37.0.0"
+  }
+}

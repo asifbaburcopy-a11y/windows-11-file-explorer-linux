@@ -1,0 +1,22 @@
+#!/bin/sh
+# maintainer script: config for winexplorer — asks the debconf question
+# BEFORE files are configured, the standard Debian way.
+set -e
+
+if [ -e /usr/share/debconf/confmodule ]; then
+    . /usr/share/debconf/confmodule
+
+    ret=0
+    db_input medium winexplorer/set-default || ret=$?
+    db_go || true
+
+    # db_input: 0 = the user was (or is being) asked; 30 = non-interactive
+    # frontend / already seen. Only mark as asked when really asked, so the
+    # application repeats the question once on first launch otherwise.
+    if [ "$ret" = "0" ]; then
+        mkdir -p /var/lib/winexplorer 2>/dev/null || true
+        touch /var/lib/winexplorer/default-asked 2>/dev/null || true
+    fi
+fi
+
+exit 0

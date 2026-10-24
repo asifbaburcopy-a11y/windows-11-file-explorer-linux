@@ -1,0 +1,47 @@
+#!/bin/sh
+# maintainer script: postrm for winexplorer
+set -e
+
+MIMEAPPS=/usr/share/applications/mimeapps.list
+
+case "$1" in
+    purge)
+        # Remove the system default entry we may have added, then restore
+        # the user's previous system default if we backed it up.
+        if [ -f "$MIMEAPPS" ] && grep -q '^inode/directory=winexplorer.desktop$' "$MIMEAPPS" 2>/dev/null; then
+            tmp=$(mktemp)
+            awk '/^inode\/directory=winexplorer.desktop$/ { next } { print }' "$MIMEAPPS" > "$tmp"
+            install -m 644 "$tmp" "$MIMEAPPS"
+            rm -f "$tmp"
+        fi
+        backup=/var/lib/winexplorer/mimeapps.list.backup
+        if [ -f "$backup" ] && [ -f "$MIMEAPPS" ]; then
+            # Re-apply the backed-up inode/directory line if one existed.
+            old=$(awk -F= '/^inode\/directory=/ { print $2; exit }' "$backup" 2>/dev/null || true)
+            if [ -n "$old" ] && [ "$old" != "winexplorer.desktop" ]; then
+                tmp=$(mktemp)
+                awk -v v="$old" '
+                    BEGIN { done=0 }
+                    /^\[Default Applications\]$/ { print; print "inode/directory=" v; done=1; next }
+                    /^inode\/directory=/ { next }
+                    { print }
+                ' "$MIMEAPPS" > "$tmp"
+                install -m 644 "$tmp" "$MIMEAPPS"
+                rm -f "$tmp"
+            fi
+        fi
+        rm -rf /var/lib/winexplorer
+        if command -v update-desktop-database >/dev/null 2>&1; then
+            update-desktop-database -q /usr/share/applications 2>/dev/null || true
+        fi
+        ;;
+    remove)
+        if command -v update-desktop-database >/dev/null 2>&1; then
+            update-desktop-database -q /usr/share/applications 2>/dev/null || true
+        fi
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0
